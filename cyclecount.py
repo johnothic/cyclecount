@@ -5,12 +5,15 @@ from datetime import date
 # Read all SKUs and assign to a list item
 
 skulist = []
-skupath = "SKUs.xlsx"
+skupath = "sku.xlsx"
 skuwb = openpyxl.load_workbook(skupath)
 skuws = skuwb.active
 skurows = skuws.max_row
 for i in range(1, skurows + 1):
     skulist.append(str(int(skuws.cell(row=i, column=1).value)))
+if len(skulist) > 30:
+    print("max-sku-exceeded")
+    exit()
 
 # Open inventory spreadsheet
 invpath = "inventory.xlsx"
@@ -24,11 +27,19 @@ countwb = openpyxl.load_workbook(countpath)
 countws = countwb.active
 
 # write current date to cell B2 in the count sheet and set the starting row for the sku list
-today = date.today()
-countrow = 6
+today = str(date.today())
+year = today[0:4]
+month = today[6:7]
+if len(month) < 2:
+    month = "0" + month
+day = today[8:10]
+if len(day) < 2:
+    day = "0" + day
 
 B2 = countws.cell(row=2, column=2)
-B2.value = str(today)
+B2.value = str(month + "/" + day + "/" + year)
+
+countrow = 6
 
 # Foreach SKU in SKU list, if SKU matches value in column A:
     # write SKU to column B starting in row 6
@@ -54,8 +65,8 @@ for sku in skulist:
             countqty.value = str(invws.cell(row=i, column=5).value)
             # save the value of the comment/note to a variable
             # if the variable is not null, write the comment to column G
-            comment = str(invws.cell(row=i, column=7).value)
-            if comment != None:
+            comment = invws.cell(row=i, column=7).value
+            if comment is not None:
                 countcomm = countws.cell(row=countrow, column=7)
                 countcomm.value = str(invws.cell(row=i, column=7).value)
             countrow = countrow + 1
